@@ -16,8 +16,7 @@ long parse_long(const char *str)
     long val = strtol(str, &next, 10);
     if (strlen(next))
     {
-        err("Failed to parse long integer from \"%s\"\n", str);
-        exit(1);
+        die("Failed to parse long integer from \"%s\"\n", str);
     }
 
     return val;
@@ -28,9 +27,21 @@ const char *get_error_string()
     return strerror(errno);
 }
 
-bool check_arg(const char *arg, const char *arg_forms[2])
+void print_help_arguement(int indents, const argument_format af)
 {
-    return !strcmp(arg, arg_forms[0]) || !strcmp(arg, arg_forms[1]);
+    for (int i = 0; i < indents; i++)
+        raw("    ");
+
+    raw("%s, %s\n", af.short_form, af.long_form);
+
+    for (int i = 0; i < indents + 1; i++)
+        raw("    ");
+    raw("%s\n", af.description);
+}
+
+bool check_arg(const char *arg, const argument_format af)
+{
+    return !strcmp(arg, af.short_form) || !strcmp(arg, af.long_form);
 }
 
 void set_log_level(log_level_t lvl)
@@ -101,7 +112,11 @@ void _log(const char *filename, int line, log_level_t lvl, char *fmt, ...)
         va_end(args);
 
         if (lvl == LOG_DEATH)
+        {
+            if (errno != 0)
+                fprintf(fd, "\nError before death: \"%s\"\n", get_error_string);
             exit(1);
+        }
     }
 }
 

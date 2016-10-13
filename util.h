@@ -8,10 +8,27 @@ typedef enum {LOG_PRF, LOG_DBG, LOG_WARN, LOG_MSG, LOG_RAW, LOG_ERROR, LOG_DEATH
 
 #define DEFAULT_LOG_LEVEL LOG_DBG
 
+typedef struct argument_format
+{
+    const char *short_form;
+    const char *long_form;
+    const char *description;
+} argument_format;
+
 long parse_long(const char *str);
 const char *get_error_string();
-bool check_arg(const char *arg, const char *arg_forms[2]);
+void print_help_arguement(int indents, const argument_format af);
+bool check_arg(const char *arg, const argument_format af);
 void _log(const char *filename, int line, log_level_t lvl, char *fmt, ...);
+
+#define CLR_NRM "\x1B[0m"
+#define CLR_RED "\x1B[31m"
+#define CLR_GRN "\x1B[32m"
+#define CLR_YEL "\x1B[33m"
+#define CLR_BLU "\x1B[34m"
+#define CLR_MAG "\x1B[35m"
+#define CLR_CYN "\x1B[36m"
+#define CLR_WHT "\x1B[37m"
 
 #define prf(fmt, ...) _log(__FILE__, __LINE__, LOG_PRF, fmt, ##__VA_ARGS__);
 #define dbg(fmt, ...) _log(__FILE__, __LINE__, LOG_DBG, fmt, ##__VA_ARGS__);
