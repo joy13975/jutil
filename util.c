@@ -75,19 +75,19 @@ void _log(const char *filename, int line, log_level_t lvl, char *fmt, ...)
         {
         case LOG_PRF:
             fd = stdout;
-            asprintf(&new_fmt, "[PRF] %s", fmt);
+            asprintf(&new_fmt, "%s[PRF]%s %s", CLR_CYN, CLR_NRM, fmt);
             break;
         case LOG_DBG:
             fd = stdout;
-            asprintf(&new_fmt, "[DBG] %s", fmt);
+            asprintf(&new_fmt, "%s[DBG]%s %s", CLR_BLU, CLR_NRM, fmt);
             break;
         case LOG_WARN:
             fd = stdout;
-            asprintf(&new_fmt, "[WRN] %s", fmt);
+            asprintf(&new_fmt, "%s[WRN]%s %s", CLR_YEL, CLR_NRM, fmt);
             break;
         case LOG_MSG:
             fd = stdout;
-            asprintf(&new_fmt, "[MSG] %s", fmt);
+            asprintf(&new_fmt, "%s[MSG]%s %s", CLR_MAG, CLR_NRM, fmt);
             break;
         case LOG_RAW:
             fd = stdout;
@@ -95,15 +95,15 @@ void _log(const char *filename, int line, log_level_t lvl, char *fmt, ...)
             break;
         case LOG_ERROR:
             fd = stderr;
-            asprintf(&new_fmt, "[ERR] %s", fmt);
+            asprintf(&new_fmt, "%s[ERR]%s %s", CLR_RED, CLR_NRM, fmt);
             break;
         case LOG_DEATH:
             fd = stderr;
-            asprintf(&new_fmt, "[DIE %s:%d] %s\n", filename, line, fmt);
+            asprintf(&new_fmt, "%s[DIE %s:%d]%s %s\n", CLR_RED, filename, line, CLR_NRM, fmt);
             break;
         default:
             fd = stdout;
-            asprintf(&new_fmt, "[Unknown Log Type] %s", fmt);
+            asprintf(&new_fmt, "%s[???]%s %s", CLR_RED, CLR_NRM, fmt);
         }
 
         vfprintf(fd, new_fmt, args);
