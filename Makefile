@@ -1,4 +1,4 @@
-EXE=test
+EXE=utiltest
 CC=gcc
 CFLAGS=-MMD -O3
 DEFS=
@@ -6,11 +6,13 @@ COMPILE=$(CC) $(CFLAGS) $(DEFS)
 LDFLAGS=
 LDLIBS=
 
+TEST_ARGS:=
+
 SRC_DIR:=src
 OBJ_DIR:=.obj
 $(shell mkdir -p $(OBJ_DIR))
 
-C_SRC:=test.c util.c
+C_SRC:=utiltest.c util.c
 CC_SRC:=
 OBJS:=$(C_SRC:%.c=$(OBJ_DIR)/%.o) $(CC_SRC:%.cc=$(OBJ_DIR)/%.o)
 DEPS:=$(C_SRC:%.c=$(OBJ_DIR)/%.d) $(CC_SRC:%.cc=$(OBJ_DIR)/%.d)
@@ -30,6 +32,9 @@ $(EXE): $(OBJS)
 -include $(DEPS)
 
 fresh: clean all
+
+test: $(EXE)
+	./$(EXE) $(TEST_ARGS)
 
 PHONY: clean
 
