@@ -27,6 +27,8 @@ $(foreach EXT,$(EXTS),$(eval $(call make_rule,$(EXT))))
 $(EXE): $(OBJS)
 	$(COMPILE) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
+-include $(DEPS)
+
 fresh: clean all
 
 PHONY: clean
