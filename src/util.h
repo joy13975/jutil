@@ -81,13 +81,14 @@ DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
 #define CLR_CYN "\x1B[36m"
 #define CLR_WHT "\x1B[37m"
 
-#define prf(fmt, ...) _log(__FILE__, __LINE__, LOG_PRF, fmt, ##__VA_ARGS__);
-#define dbg(fmt, ...) _log(__FILE__, __LINE__, LOG_DBG, fmt, ##__VA_ARGS__);
-#define wrn(fmt, ...) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__);
-#define err(fmt, ...) _log(__FILE__, __LINE__, LOG_ERROR, fmt, ##__VA_ARGS__);
-#define msg(fmt, ...) _log(__FILE__, __LINE__, LOG_MSG, fmt, ##__VA_ARGS__);
-#define raw(fmt, ...) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__);
-#define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__);
+#define prf(fmt, ...) _log(__FILE__, __LINE__, LOG_PRF, fmt, ##__VA_ARGS__)
+#define dbg(fmt, ...) _log(__FILE__, __LINE__, LOG_DBG, fmt, ##__VA_ARGS__)
+#define wrn(fmt, ...) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__)
+#define err(fmt, ...) _log(__FILE__, __LINE__, LOG_ERROR, fmt, ##__VA_ARGS__)
+#define msg(fmt, ...) _log(__FILE__, __LINE__, LOG_MSG, fmt, ##__VA_ARGS__)
+#define raw(fmt, ...) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__)
+#define raw_at(lvl, fmt, ...) do{ if (lvl >= get_log_level()) raw(fmt, ##__VA_ARGS__); } while(0)
+#define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__)
 
 Log_Level get_log_level();
 void set_log_level(Log_Level lvl);

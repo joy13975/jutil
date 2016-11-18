@@ -119,7 +119,7 @@ void set_log_level(Log_Level lvl)
         raw("   LOG_DBG    : %d\n", LOG_DBG);
         raw("   LOG_WARN   : %d\n", LOG_WARN);
         raw("   LOG_MSG    : %d\n", LOG_MSG);
-        raw("   LOG_RAW    : %d\n", LOG_RAW)
+        raw("   LOG_RAW    : %d\n", LOG_RAW);
         // raw("   LOG_ERROR  : %d\n", LOG_ERROR);
         // raw("   LOG_DEATH  : %d\n", LOG_DEATH);
         exit(1);
