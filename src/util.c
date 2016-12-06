@@ -1,3 +1,8 @@
+
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -114,12 +119,12 @@ void set_log_level(Log_Level lvl)
     if (lvl < 0 || lvl >= LOG_ERROR)
     {
         err("Invalid log level: %d\n", lvl);
-        err("Must be between 0 and %d\n", LOG_ERROR);
-        raw("   LOG_PROOF    : %d\n", LOG_PROOF);
-        raw("   LOG_DEBUG    : %d\n", LOG_DEBUG);
-        raw("   LOG_WARN   : %d\n", LOG_WARN);
-        raw("   LOG_MESSAGE    : %d\n", LOG_MESSAGE);
-        raw("   LOG_RAW    : %d\n", LOG_RAW);
+        err("Must be between 0 and %d\n", LOG_RAW);
+        raw("   LOG_PROOF       : %d\n", LOG_PROOF);
+        raw("   LOG_DEBUG       : %d\n", LOG_DEBUG);
+        raw("   LOG_WARN        : %d\n", LOG_WARN);
+        raw("   LOG_MESSAGE     : %d\n", LOG_MESSAGE);
+        raw("   LOG_RAW         : %d\n", LOG_RAW);
         // raw("   LOG_ERROR  : %d\n", LOG_ERROR);
         // raw("   LOG_DEATH  : %d\n", LOG_DEATH);
         exit(1);
@@ -173,7 +178,7 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
             break;
         case LOG_DEATH:
             fd = stderr;
-            asprintf(&new_fmt, "%s[DIE %s:%d]%s%s%s\n",
+            asprintf(&new_fmt, "\n%s[DIE %s:%d]%s%s%s",
                      CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
             break;
         default:
@@ -210,3 +215,7 @@ double get_timestamp_us()
     gettimeofday(&tv, NULL);
     return tv.tv_usec + tv.tv_sec * 1e6;
 }
+
+#if defined (__cplusplus)
+}
+#endif
