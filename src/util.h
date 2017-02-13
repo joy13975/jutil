@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 //enum-string generation
 #define GEN_ENUM(ITEM) ITEM,
