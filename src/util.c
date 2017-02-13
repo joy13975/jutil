@@ -16,6 +16,27 @@ extern "C" {
 Log_Level log_level         = UTIL_DEFAULT_LOG_LEVEL;
 int print_leading_spaces    = 0;
 
+void write_binary(const char* filename, const char* ptr, size_t write_size)
+{
+    FILE *outFile = fopen(filename, "wb");
+
+    if (!outFile)
+        die("Could not open output file \"%s\"\n", filename);
+
+    while (write_size > 0)
+    {
+        const size_t wrote = fwrite(ptr, write_size, 1, outFile);
+
+        if (wrote == 0)
+            break;
+
+        write_size -= (write_size * wrote);
+    }
+
+    fclose(outFile);
+}
+
+
 void print_arg_title(const char *title)
 {
     set_leading_spaces(4);
@@ -23,16 +44,17 @@ void print_arg_title(const char *title)
     reset_leading_spaces();
 }
 
-void print_arg_bundles(const argument_bundle *argbv, const int n)
+void print_arg_bundles(const argument_bundle **argbv, const int n)
 {
     for (int i = 0; i < n; i++)
     {
-        const argument_bundle *ab = &(argbv[i]);
+        const argument_bundle *ab = &((*argbv)[i]);
         set_leading_spaces(8);
         raw("%s, %s\n", ab->short_form, ab->long_form);
         set_leading_spaces(12);
         raw("%s\n", ab->description);
     }
+    (*argbv) += n;
     reset_leading_spaces();
 }
 
@@ -75,7 +97,7 @@ void parse_args(const int argc,
                     }
                     else
                     {
-                            argbv[j].call_back(argv[i]);
+                        argbv[j].call_back(argv[i]);
                     }
                     break;
                 }
@@ -155,69 +177,67 @@ void set_log_level(Log_Level lvl)
 
 void _log(const char *filename, const int line, const Log_Level lvl, const char *fmt, ...)
 {
-    if (lvl >= log_level) {
-        va_list args;
-        va_start(args, fmt);
+    va_list args;
+    va_start(args, fmt);
 
-        char space_buffer[print_leading_spaces + 1];
-        memset(space_buffer, ' ', print_leading_spaces);
-        space_buffer[print_leading_spaces] = '\0';
+    char space_buffer[print_leading_spaces + 1];
+    memset(space_buffer, ' ', print_leading_spaces);
+    space_buffer[print_leading_spaces] = '\0';
 
-        char *new_fmt;
-        FILE *fd;
-        switch (lvl)
-        {
-        case LOG_PROOF:
-            fd = stdout;
-            asprintf(&new_fmt, "%s[PRF] %s%s%s",
-                     CLR_CYN, CLR_NRM, space_buffer, fmt);
-            break;
-        case LOG_DEBUG:
-            fd = stdout;
-            asprintf(&new_fmt, "%s[DBG] %s%s%s",
-                     CLR_BLU, CLR_NRM, space_buffer, fmt);
-            break;
-        case LOG_WARN:
-            fd = stdout;
-            asprintf(&new_fmt, "%s[WRN] %s%s%s",
-                     CLR_YEL, CLR_NRM, space_buffer, fmt);
-            break;
-        case LOG_MESSAGE:
-            fd = stdout;
-            asprintf(&new_fmt, "%s[MSG] %s%s%s",
-                     CLR_MAG, CLR_NRM, space_buffer, fmt);
-            break;
-        case LOG_RAW:
-            fd = stdout;
-            asprintf(&new_fmt, "%s%s", space_buffer, fmt);
-            break;
-        case LOG_ERROR:
-            fd = stderr;
-            asprintf(&new_fmt, "%s[ERR] %s%s%s",
-                     CLR_RED, CLR_NRM, space_buffer, fmt);
-            break;
-        case LOG_DEATH:
-            fd = stderr;
-            asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
-                     CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
-            break;
-        default:
-            fd = stdout;
-            asprintf(&new_fmt, "%s[???] %s%s%s",
-                     CLR_RED, CLR_NRM, space_buffer, fmt);
-        }
+    char *new_fmt;
+    FILE *fd;
+    switch (lvl)
+    {
+    case LOG_PROOF:
+        fd = stdout;
+        asprintf(&new_fmt, "%s[PRF] %s%s%s",
+                 CLR_CYN, CLR_NRM, space_buffer, fmt);
+        break;
+    case LOG_DEBUG:
+        fd = stdout;
+        asprintf(&new_fmt, "%s[DBG] %s%s%s",
+                 CLR_BLU, CLR_NRM, space_buffer, fmt);
+        break;
+    case LOG_WARN:
+        fd = stdout;
+        asprintf(&new_fmt, "%s[WRN] %s%s%s",
+                 CLR_YEL, CLR_NRM, space_buffer, fmt);
+        break;
+    case LOG_MESSAGE:
+        fd = stdout;
+        asprintf(&new_fmt, "%s[MSG] %s%s%s",
+                 CLR_MAG, CLR_NRM, space_buffer, fmt);
+        break;
+    case LOG_RAW:
+        fd = stdout;
+        asprintf(&new_fmt, "%s%s", space_buffer, fmt);
+        break;
+    case LOG_ERROR:
+        fd = stderr;
+        asprintf(&new_fmt, "%s[ERR] %s%s%s",
+                 CLR_RED, CLR_NRM, space_buffer, fmt);
+        break;
+    case LOG_DEATH:
+        fd = stderr;
+        asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
+                 CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
+        break;
+    default:
+        fd = stdout;
+        asprintf(&new_fmt, "%s[???] %s%s%s",
+                 CLR_RED, CLR_NRM, space_buffer, fmt);
+    }
 
-        vfprintf(fd, new_fmt, args);
-        fflush(fd);
+    vfprintf(fd, new_fmt, args);
+    fflush(fd);
 
-        va_end(args);
+    va_end(args);
 
-        if (lvl == LOG_DEATH)
-        {
-            if (errno != 0)
-                fprintf(fd, "\nError before death: code %d (%s)\n", errno, get_error_string());
-            exit(1);
-        }
+    if (lvl == LOG_DEATH)
+    {
+        if (errno != 0)
+            fprintf(fd, "\nError before death: code %d (%s)\n", errno, get_error_string());
+        exit(1);
     }
 }
 
@@ -235,6 +255,44 @@ double get_timestamp_us()
     gettimeofday(&tv, NULL);
     return tv.tv_usec + tv.tv_sec * 1e6;
 }
+
+void test_logs()
+{
+    prf("Proof\n");
+
+    dbg("Debug\n");
+
+    wrn("Warning\n");
+
+    msg("Message\n");
+
+    raw("Raw\n");
+
+    set_log_level(LOG_DEBUG);
+    raw_at(LOG_DEBUG, "Raw at Debug (should show)\n");
+
+    set_log_level(LOG_WARN);
+    raw_at(LOG_DEBUG, "Raw at Debug (should not show)\n");
+
+    raw_at(LOG_WARN, "Raw at Warning (should show)\n");
+
+    set_log_level(LOG_MESSAGE);
+    raw_at(LOG_WARN, "Raw at Warning (should NOT show)\n");
+
+    err("Error\n");
+
+    msg("Test done - now exit with die()...\n");
+    die("Exit successful\n");
+}
+
+#if defined(_TEST_JUTIL)
+int main(void)
+{
+
+    test_logs();
+    return 0;
+}
+#endif
 
 #if defined (__cplusplus)
 }

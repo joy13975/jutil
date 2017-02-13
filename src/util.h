@@ -9,16 +9,25 @@ extern "C" {
 #include <stdbool.h>
 
 //enum-string generation
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STRING(STRING) #STRING,
-#define DECL_ENUM_AND_STRING(TYPE_NAME, FOREACH_MACRO) \
+#define GEN_ENUM(ITEM) ITEM,
+#define GEN_STRING(STRING) #STRING,
+#define GEN_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM) \
     typedef enum { \
-        FOREACH_MACRO(GENERATE_ENUM) \
+        FOREACH_ITEM(GEN_ENUM) \
     } TYPE_NAME; \
-    static const char *TYPE_NAME ## _String[] = { \
-        FOREACH_MACRO(GENERATE_STRING) \
-    }; \
+    static const char *TYPE_STRING_NAME[] = { \
+        FOREACH_ITEM(GEN_STRING) \
+    };
 
+#define GEN_ITEM_VAL(ITEM, VAL) ITEM = VAL,
+#define GEN_STRING_VAL(STRING, VAL) if(e == VAL) return #STRING;
+#define GEN_ENUM_VAL_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM_VAL) \
+    typedef enum { \
+        FOREACH_ITEM_VAL(GEN_ITEM_VAL) \
+    } TYPE_NAME; \
+    static const char * TYPE_STRING_NAME(TYPE_NAME e) { \
+        FOREACH_ITEM_VAL(GEN_STRING_VAL) \
+    };
 
 //enum-string example
 /*
@@ -40,7 +49,7 @@ extern "C" {
     MACRO(DIV) \
     MACRO(CMP) \
 
-DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
+GEN_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
 */
 
 #define FOREACH_LOG_LEVEL(MACRO) \
@@ -52,7 +61,7 @@ DECL_ENUM_AND_STRING(ALU_Flag, FOREACH_ALU_FLAG);
     MACRO(LOG_ERROR) \
     MACRO(LOG_DEATH)
 
-DECL_ENUM_AND_STRING(Log_Level, FOREACH_LOG_LEVEL);
+GEN_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 
@@ -69,6 +78,7 @@ typedef struct argument_bundle
     void (*const call_back)(const char *arg_in);
 } argument_bundle;
 
+void write_binary(const char* filename, const char* ptr, size_t write_size);
 void parse_args(const int argc,
                 char const *argv[],
                 const int argbc,
@@ -81,7 +91,7 @@ float parse_float(const char *str);
 long parse_long(const char *str);
 const char *get_error_string();
 void print_arg_title(const char *title);
-void print_arg_bundles(const argument_bundle *argbv, const int n);
+void print_arg_bundles(const argument_bundle **argbv, const int n);
 void _log(const char *filename, const int line, const Log_Level lvl, const char *fmt, ...);
 
 #define jmin(a, b)                   (a < b ? a : b)
@@ -98,12 +108,12 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define CLR_CYN "\x1B[36m"
 #define CLR_WHT "\x1B[37m"
 
-#define prf(fmt, ...) _log(__FILE__, __LINE__, LOG_PROOF, fmt, ##__VA_ARGS__)
-#define dbg(fmt, ...) _log(__FILE__, __LINE__, LOG_DEBUG, fmt, ##__VA_ARGS__)
-#define wrn(fmt, ...) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__)
+#define prf(fmt, ...) do { if (LOG_PROOF >= get_log_level()) _log(__FILE__, __LINE__, LOG_PROOF, fmt, ##__VA_ARGS__); } while(0)
+#define dbg(fmt, ...) do { if (LOG_DEBUG >= get_log_level()) _log(__FILE__, __LINE__, LOG_DEBUG, fmt, ##__VA_ARGS__); } while(0)
+#define wrn(fmt, ...) do { if (LOG_WARN >= get_log_level()) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__); } while(0)
 #define err(fmt, ...) _log(__FILE__, __LINE__, LOG_ERROR, fmt, ##__VA_ARGS__)
-#define msg(fmt, ...) _log(__FILE__, __LINE__, LOG_MESSAGE, fmt, ##__VA_ARGS__)
-#define raw(fmt, ...) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__)
+#define msg(fmt, ...) do { if (LOG_MESSAGE >= get_log_level()) _log(__FILE__, __LINE__, LOG_MESSAGE, fmt, ##__VA_ARGS__); } while(0)
+#define raw(fmt, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__); } while(0)
 #define raw_at(lvl, fmt, ...) do{ if (lvl >= get_log_level()) raw(fmt, ##__VA_ARGS__); } while(0)
 #define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__)
 
