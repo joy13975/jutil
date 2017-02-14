@@ -116,7 +116,8 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define msg(fmt, ...) do { if (LOG_MESSAGE >= get_log_level()) _log(__FILE__, __LINE__, LOG_MESSAGE, fmt, ##__VA_ARGS__); } while(0)
 #define raw(fmt, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__); } while(0)
 #define raw_at(lvl, fmt, ...) do{ if (lvl >= get_log_level()) raw(fmt, ##__VA_ARGS__); } while(0)
-#define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__)
+#define die(fmt, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
+#define panicIf(cond, fmt, ...) do { if(cond) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
 
 Log_Level get_log_level();
 void set_log_level(Log_Level lvl);
