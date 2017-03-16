@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 //enum-string generation
 #define GEN_ENUM(ITEM) ITEM,
@@ -78,7 +79,19 @@ typedef struct argument_bundle
     void (*const call_back)(const char *arg_in);
 } argument_bundle;
 
-void write_binary(const char* filename, const char* ptr, size_t write_size);
+void mkdir_ifn_exists(const char * dirname);
+bool file_exists(const char * filename);
+bool float_approximates(
+    const float actual,
+    const float ref);
+bool float_approximates_err(
+    const float actual,
+    const float ref,
+    const float error);
+void write_binary(
+    const char* filename,
+    const char* ptr,
+    size_t write_size);
 void parse_args(const int argc,
                 char const *argv[],
                 const int argbc,
@@ -115,7 +128,8 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define msg(fmt, ...) do { if (LOG_MESSAGE >= get_log_level()) _log(__FILE__, __LINE__, LOG_MESSAGE, fmt, ##__VA_ARGS__); } while(0)
 #define raw(fmt, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, fmt, ##__VA_ARGS__); } while(0)
 #define raw_at(lvl, fmt, ...) do{ if (lvl >= get_log_level()) raw(fmt, ##__VA_ARGS__); } while(0)
-#define die(fmt, ...) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__)
+#define die(fmt, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
+#define panic_if(cond, fmt, ...) do { if(cond) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
 
 Log_Level get_log_level();
 void set_log_level(Log_Level lvl);

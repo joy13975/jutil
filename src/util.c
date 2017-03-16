@@ -10,13 +10,53 @@ extern "C" {
 #include <sys/time.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
+#include <sys/stat.h>
 
 #include "util.h"
 
 Log_Level log_level         = UTIL_DEFAULT_LOG_LEVEL;
 int print_leading_spaces    = 0;
 
-void write_binary(const char* filename, const char* ptr, size_t write_size)
+void mkdir_ifn_exists(const char * dirname)
+{
+    if (!file_exists(dirname))
+    {
+        mkdir(dirname, 0700);
+    }
+}
+
+bool file_exists(const char * filename)
+{
+    struct stat buffer;
+    return (stat (filename, &buffer) == 0);
+}
+
+bool float_approximates(
+    const float actual,
+    const float ref)
+{
+    return float_approximates_err(actual, ref, 1e-5);
+}
+
+bool float_approximates_err(
+    const float actual,
+    const float ref,
+    const float tolerance)
+{
+    const float d = fabs(actual - ref);
+
+    const bool approx = d <= tolerance;
+    if (!approx)
+        wrn("Difference exceeds tolerance (%.10f>%.10f)!\n",
+            d, tolerance);
+    return approx;
+}
+
+void write_binary(
+    const char* filename,
+    const char* ptr,
+    size_t write_size)
 {
     FILE *outFile = fopen(filename, "wb");
 
@@ -139,7 +179,7 @@ float parse_float(const char *str)
 long parse_long(const char *str)
 {
     char *next;
-    long val = strtol(str, &next, 10);
+    long val = strtol(str, &next, 0); // base 0 allows format detection
     if (strlen(next))
         die("Failed to parse long integer from \"%s\"\n", str);
 
