@@ -131,6 +131,7 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define die(fmt, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
 #define panic_if(cond, fmt, ...) do { if(cond) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
 
+
 Log_Level get_log_level();
 void set_log_level(Log_Level lvl);
 void nsleep(long ns);
