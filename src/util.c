@@ -47,9 +47,9 @@ bool float_approximates_err(
     const float d = fabs(actual - ref);
 
     const bool approx = d <= tolerance;
-    if (!approx)
-        wrn("Difference exceeds tolerance (%.10f>%.10f)!\n",
-            d, tolerance);
+    // if (!approx)
+    //     wrn("Difference exceeds tolerance (%.10f>%.10f)!\n",
+    //         d, tolerance);
     return approx;
 }
 
