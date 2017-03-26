@@ -121,6 +121,17 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define CLR_CYN "\x1B[36m"
 #define CLR_WHT "\x1B[37m"
 
+#ifdef _SILENT
+#define prf(fmt, ...)
+#define dbg(fmt, ...)
+#define wrn(fmt, ...)
+#define err(fmt, ...)
+#define msg(fmt, ...)
+#define raw(fmt, ...)
+#define raw_at(lvl, fmt, ...)
+#define die(fmt, ...)
+#define panic_if(cond, fmt, ...)
+#else
 #define prf(fmt, ...) do { if (LOG_PROOF >= get_log_level()) _log(__FILE__, __LINE__, LOG_PROOF, fmt, ##__VA_ARGS__); } while(0)
 #define dbg(fmt, ...) do { if (LOG_DEBUG >= get_log_level()) _log(__FILE__, __LINE__, LOG_DEBUG, fmt, ##__VA_ARGS__); } while(0)
 #define wrn(fmt, ...) do { if (LOG_WARN >= get_log_level()) _log(__FILE__, __LINE__, LOG_WARN, fmt, ##__VA_ARGS__); } while(0)
@@ -130,7 +141,7 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define raw_at(lvl, fmt, ...) do{ if (lvl >= get_log_level()) raw(fmt, ##__VA_ARGS__); } while(0)
 #define die(fmt, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
 #define panic_if(cond, fmt, ...) do { if(cond) _log(__FILE__, __LINE__, LOG_DEATH, fmt, ##__VA_ARGS__); } while(0)
-
+#endif //_SILENT
 
 Log_Level get_log_level();
 void set_log_level(Log_Level lvl);
