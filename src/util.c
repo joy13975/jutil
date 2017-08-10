@@ -100,7 +100,14 @@ void print_arg_bundles(const argument_bundle **argbv, const int n)
 
 bool arg_matches(const char *arg_in, const argument_bundle ab)
 {
-    return 0 == strcmp(arg_in, ab.short_form) || 0 == strcmp(arg_in, ab.long_form);
+    // anything shorter than 2 chars cannot match
+    if (arg_in[0] == '\0' || arg_in[1] == '\0')
+        return false;
+
+    // the +1 for short form is to skip "-"
+    // the +2 for long form is to skip "--"
+    return 0 == strcmp((char *) (arg_in + 1), ab.short_form) ||
+           0 == strcmp((char *) (arg_in + 2), ab.long_form);
 }
 
 void parse_args(const int argc,
