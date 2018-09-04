@@ -1,4 +1,6 @@
 # jutil
+[![Build Status](https://travis-ci.com/joy13975/jutil.svg?branch=master)](https://travis-ci.com/joy13975/jutil)
+
 A C helper library that does trivial stuff.
 
 I've made some effort to test, but some parts or all might still be buggy/badly written. Use at your own risk, but feel free to open an issue/contribute.
