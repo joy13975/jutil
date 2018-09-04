@@ -1,4 +1,4 @@
-EXE=util
+EXE=jutil
 CC=gcc
 CFLAGS=-MMD -O3 -fmax-errors=1
 DEFS=-D_TEST_JUTIL
@@ -10,7 +10,7 @@ TEST_ARGS:=
 
 SRC_DIR:=src
 OBJ_DIR:=.obj
-$(shell mkdir -p 	$(OBJ_DIR)/$(SRC_DIR))
+$(shell mkdir -p $(OBJ_DIR)/$(SRC_DIR))
 
 C_SRC:=$(wildcard $(SRC_DIR)/*.c)
 CC_SRC:=$(wildcard $(SRC_DIR)/*.cc)

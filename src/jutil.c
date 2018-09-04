@@ -1,3 +1,6 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
 
 #if defined (__cplusplus)
 extern "C" {
@@ -13,7 +16,7 @@ extern "C" {
 #include <math.h>
 #include <sys/stat.h>
 
-#include "util.h"
+#include "jutil.h"
 
 Log_Level log_level         = UTIL_DEFAULT_LOG_LEVEL;
 int print_leading_spaces    = 0;
@@ -84,33 +87,42 @@ void print_arg_title(const char *title)
     reset_leading_spaces();
 }
 
-void print_arg_bundles(const argument_bundle **argbv, const int n)
+void _print_arg_bundles(const argument_bundle *argbv, const int n)
 {
     for (int i = 0; i < n; i++)
     {
-        const argument_bundle *ab = &((*argbv)[i]);
+        const argument_bundle *ab = &(argbv[i]);
         set_leading_spaces(8);
         raw("%s, %s\n", ab->short_form, ab->long_form);
         set_leading_spaces(12);
         raw("%s\n", ab->description);
     }
-    (*argbv) += n;
     reset_leading_spaces();
 }
 
-bool arg_matches(const char *arg_in, const argument_bundle ab)
+bool arg_matches(const char *arg_in, const argument_bundle * ab)
 {
     // anything shorter than 2 chars cannot match
     if (arg_in[0] == '\0' || arg_in[1] == '\0')
         return false;
 
-    // the +1 for short form is to skip "-"
-    // the +2 for long form is to skip "--"
-    return 0 == strcmp((char *) (arg_in + 1), ab.short_form) ||
-           0 == strcmp((char *) (arg_in + 2), ab.long_form);
+    if (arg_in[0] == '-'){
+     // +1 for short form is to skip "-"
+        if (arg_in[1] == '-' && 
+            0 == strcmp((char *) (arg_in + 2), ab->long_form)){
+            return true;
+        }
+        else{
+            // +2 for long form is to skip "--"
+            if (0 == strcmp((char *) (arg_in + 1), ab->short_form))
+            return true;
+        }
+    }
+
+    return false;
 }
 
-void parse_args(const int argc,
+void _parse_args(const int argc,
                 char const *argv[],
                 const int argbc,
                 const argument_bundle *argbv,
@@ -124,11 +136,11 @@ void parse_args(const int argc,
         // call callback function if matched
         for (int j = 0; j < argbc; j++)
         {
-            if ((found_arg = arg_matches(argv[i], argbv[j])))
+            if ((found_arg = arg_matches(argv[i], &argbv[j])))
             {
                 if (argbv[j].call_back != NULL)
                 {
-                    if (argbv[j].exp_val )
+                    if (argbv[j].exp_val)
                     {
                         if (i + 1 > argc - 1)
                         {
@@ -233,50 +245,57 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 
     char *new_fmt;
     FILE *fd;
+
+    int bytes_printed = -1;
     switch (lvl)
     {
     case LOG_PROOF:
         fd = stdout;
-        asprintf(&new_fmt, "%s[PRF] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "%s[PRF] %s%s%s",
                  CLR_CYN, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_DEBUG:
         fd = stdout;
-        asprintf(&new_fmt, "%s[DBG] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "%s[DBG] %s%s%s",
                  CLR_BLU, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_WARN:
         fd = stdout;
-        asprintf(&new_fmt, "%s[WRN] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "%s[WRN] %s%s%s",
                  CLR_YEL, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_MESSAGE:
         fd = stdout;
-        asprintf(&new_fmt, "%s[MSG] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "%s[MSG] %s%s%s",
                  CLR_MAG, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_RAW:
         fd = stdout;
-        asprintf(&new_fmt, "%s%s", space_buffer, fmt);
+        bytes_printed = asprintf(&new_fmt, "%s%s", space_buffer, fmt);
         break;
     case LOG_ERROR:
         fd = stderr;
-        asprintf(&new_fmt, "%s[ERR] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "%s[ERR] %s%s%s",
                  CLR_RED, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_DEATH:
         fd = stderr;
-        asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
                  CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
         break;
     default:
         fd = stdout;
-        asprintf(&new_fmt, "%s[???] %s%s%s",
+        bytes_printed = asprintf(&new_fmt, "%s[???] %s%s%s",
                  CLR_RED, CLR_NRM, space_buffer, fmt);
     }
 
-    vfprintf(fd, new_fmt, args);
-    fflush(fd);
+    if(bytes_printed == -1){
+        fprintf(stderr, "Error: asprintf() failed to print for log level %s", Log_Level_String[log_level]);
+    }
+    else{
+        vfprintf(fd, new_fmt, args);
+        fflush(fd);
+    }
 
     va_end(args);
 
@@ -333,10 +352,34 @@ void test_logs()
 }
 
 #if defined(_TEST_JUTIL)
-int main(void)
-{
 
+typedef struct {
+    const char * inputFile;
+} Options;
+Options options;
+
+DECL_ARG_CALLBACK(helpAndExit);
+DECL_ARG_CALLBACK(setInputFile);
+
+const argument_bundle argb[] = {
+    /* {short_form, long_form, description, exp_val, call_back} */
+    {"h", "help", "Print this help text and exit", false, helpAndExit},
+    {"i", "inputFile", "Set input file (dummy argument)", true, setInputFile}
+    /* More arguments... */
+};
+
+DECL_ARG_CALLBACK(helpAndExit) {
+    print_arg_bundles(argb);
+    exit(1);
+}
+
+DECL_ARG_CALLBACK(setInputFile) { options.inputFile = arg_in; }
+
+int main(int argc, const char ** argv){
+    parse_args(argc, argv, argb, helpAndExit);
     test_logs();
+    msg("Done\n");
+
     return 0;
 }
 #endif

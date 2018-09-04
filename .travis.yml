@@ -1,0 +1,8 @@
+language: cpp
+script:
+  - make
+  - ./jutil
+
+notifications:
+  email:
+  - joyyeh.tw@gmail.com
