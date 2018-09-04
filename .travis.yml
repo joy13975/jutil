@@ -2,6 +2,9 @@ language: cpp
 script:
   - make
   - ./jutil
+  - ./jutil -l
+  - ./jutil -d || [ $? -eq 1 ]
+  - ./jutil --abc || [ $? -eq 1 ]
 
 notifications:
   email:

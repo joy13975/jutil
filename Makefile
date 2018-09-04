@@ -1,6 +1,6 @@
 EXE=jutil
 CC=gcc
-CFLAGS=-MMD -O3 -fmax-errors=1
+CFLAGS=-MMD -O3 -fmax-errors=1 -std=c99
 DEFS=-D_TEST_JUTIL
 COMPILE=$(CC) $(CFLAGS) $(DEFS)
 LDFLAGS=

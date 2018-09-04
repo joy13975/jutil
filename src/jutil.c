@@ -322,8 +322,25 @@ double get_timestamp_us()
     return tv.tv_usec + tv.tv_sec * 1e6;
 }
 
-void test_logs()
-{
+#if defined(_TEST_JUTIL)
+
+DECL_ARG_CALLBACK(helpAndExit);
+DECL_ARG_CALLBACK(test_logs);
+DECL_ARG_CALLBACK(test_death);
+
+const argument_bundle argb[] = {
+    /* {short_form, long_form, description, exp_val, call_back} */
+    {"h", "help", "Print this help text and exit", false, helpAndExit},
+    {"l", "log", "Test logs", false, test_logs},
+    {"d", "die", "Test death", false, test_death}
+    /* More arguments... */
+};
+
+DECL_ARG_CALLBACK(helpAndExit) {
+    print_arg_bundles(argb);
+    exit(1);
+}
+DECL_ARG_CALLBACK(test_logs) {
     prf("Proof\n");
 
     dbg("Debug\n");
@@ -348,38 +365,14 @@ void test_logs()
     err("Error\n");
 
     msg("Test done - now exit with die()...\n");
+}
+
+DECL_ARG_CALLBACK(test_death){
     die("Exit successful\n");
 }
 
-#if defined(_TEST_JUTIL)
-
-typedef struct {
-    const char * inputFile;
-} Options;
-Options options;
-
-DECL_ARG_CALLBACK(helpAndExit);
-DECL_ARG_CALLBACK(setInputFile);
-
-const argument_bundle argb[] = {
-    /* {short_form, long_form, description, exp_val, call_back} */
-    {"h", "help", "Print this help text and exit", false, helpAndExit},
-    {"i", "inputFile", "Set input file (dummy argument)", true, setInputFile}
-    /* More arguments... */
-};
-
-DECL_ARG_CALLBACK(helpAndExit) {
-    print_arg_bundles(argb);
-    exit(1);
-}
-
-DECL_ARG_CALLBACK(setInputFile) { options.inputFile = arg_in; }
-
 int main(int argc, const char ** argv){
     parse_args(argc, argv, argb, helpAndExit);
-    test_logs();
-    msg("Done\n");
-
     return 0;
 }
 #endif
