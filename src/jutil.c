@@ -297,6 +297,8 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
         fflush(fd);
     }
 
+    free(new_fmt);
+
     va_end(args);
 
     if (lvl == LOG_DEATH)
