@@ -127,7 +127,7 @@ void _parse_args(const int argc,
                 argb, \
                 fail_callback)
 
-void _print_arg_bundles(const argument_bundle *argbv, const int n);
+void _print_arg_bundles(const argument_bundle *argbv, const size_t n);
 #define print_arg_bundles(argb) \
     _print_arg_bundles(argb, sizeof(argb)/sizeof(argb[0]))
 

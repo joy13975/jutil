@@ -21,32 +21,27 @@ extern "C" {
 Log_Level log_level         = UTIL_DEFAULT_LOG_LEVEL;
 int print_leading_spaces    = 0;
 
-void mkdir_ifn_exists(const char * dirname)
-{
-    if (!file_exists(dirname))
-    {
+void mkdir_ifn_exists(const char * dirname) {
+    if (!file_exists(dirname)) {
         mkdir(dirname, 0700);
     }
 }
 
-bool file_exists(const char * filename)
-{
+bool file_exists(const char * filename) {
     struct stat buffer;
     return (stat (filename, &buffer) == 0);
 }
 
 bool float_approximates(
     const float actual,
-    const float ref)
-{
+    const float ref) {
     return float_approximates_err(actual, ref, 1e-5);
 }
 
 bool float_approximates_err(
     const float actual,
     const float ref,
-    const float tolerance)
-{
+    const float tolerance) {
     const float d = fabs(actual - ref);
 
     const bool approx = d <= tolerance;
@@ -59,15 +54,13 @@ bool float_approximates_err(
 void write_binary(
     const char* filename,
     const char* ptr,
-    size_t write_size)
-{
+    size_t write_size) {
     FILE *outFile = fopen(filename, "wb");
 
     if (!outFile)
         die("Could not open output file \"%s\"\n", filename);
 
-    while (write_size > 0)
-    {
+    while (write_size > 0) {
         const size_t wrote = fwrite(ptr, write_size, 1, outFile);
 
         if (wrote == 0)
@@ -80,17 +73,14 @@ void write_binary(
 }
 
 
-void print_arg_title(const char *title)
-{
+void print_arg_title(const char *title) {
     set_leading_spaces(4);
     raw("%s\n", title);
     reset_leading_spaces();
 }
 
-void _print_arg_bundles(const argument_bundle *argbv, const int n)
-{
-    for (int i = 0; i < n; i++)
-    {
+void _print_arg_bundles(const argument_bundle *argbv, const size_t n) {
+    for (size_t i = 0; i < n; i++) {
         const argument_bundle *ab = &(argbv[i]);
         set_leading_spaces(8);
         raw("%s, %s\n", ab->short_form, ab->long_form);
@@ -100,22 +90,21 @@ void _print_arg_bundles(const argument_bundle *argbv, const int n)
     reset_leading_spaces();
 }
 
-bool arg_matches(const char *arg_in, const argument_bundle * ab)
-{
+bool arg_matches(const char *arg_in, const argument_bundle * ab) {
     // anything shorter than 2 chars cannot match
     if (arg_in[0] == '\0' || arg_in[1] == '\0')
         return false;
 
-    if (arg_in[0] == '-'){
-     // +1 for short form is to skip "-"
-        if (arg_in[1] == '-' && 
-            0 == strcmp((char *) (arg_in + 2), ab->long_form)){
+    if (arg_in[0] == '-') {
+        // +1 for short form is to skip "-"
+        if (arg_in[1] == '-' &&
+                0 == strcmp((char *) (arg_in + 2), ab->long_form)) {
             return true;
         }
-        else{
+        else {
             // +2 for long form is to skip "--"
             if (0 == strcmp((char *) (arg_in + 1), ab->short_form))
-            return true;
+                return true;
         }
     }
 
@@ -123,39 +112,30 @@ bool arg_matches(const char *arg_in, const argument_bundle * ab)
 }
 
 void _parse_args(const int argc,
-                char const *argv[],
-                const int argbc,
-                const argument_bundle *argbv,
-                void (*const failure_callback) (const char *failure_arg_in))
-{
-    for (int i = 1; i < argc; i++)
-    {
+                 char const *argv[],
+                 const int argbc,
+                 const argument_bundle *argbv,
+                 void (*const failure_callback) (const char *failure_arg_in)) {
+    for (size_t i = 1; i < (size_t) argc; i++) {
         bool found_arg = false;
 
         // iterate through argument bundle to match argument
         // call callback function if matched
-        for (int j = 0; j < argbc; j++)
-        {
-            if ((found_arg = arg_matches(argv[i], &argbv[j])))
-            {
-                if (argbv[j].call_back != NULL)
-                {
-                    if (argbv[j].exp_val)
-                    {
-                        if (i + 1 > argc - 1)
-                        {
+        for (size_t j = 0; j < (size_t) argbc; j++) {
+            if ((found_arg = arg_matches(argv[i], &argbv[j]))) {
+                if (argbv[j].call_back != NULL) {
+                    if (argbv[j].exp_val) {
+                        if (i + 1 > argc - 1) {
                             err("Argument %s expects a pairing value\n",
                                 argv[i]);
                             failure_callback(argv[i]);
                             break;
                         }
-                        else
-                        {
+                        else {
                             argbv[j].call_back(argv[++i]);
                         }
                     }
-                    else
-                    {
+                    else {
                         argbv[j].call_back(argv[i]);
                     }
                     break;
@@ -163,31 +143,26 @@ void _parse_args(const int argc,
             }
         }
 
-        if (!found_arg)
-        {
+        if (!found_arg) {
             err("Unknown argument: %s\n", argv[i]);
             failure_callback(argv[i]);
         }
     }
 }
 
-int get_leading_spaces()
-{
+int get_leading_spaces() {
     return print_leading_spaces;
 }
 
-void reset_leading_spaces()
-{
+void reset_leading_spaces() {
     print_leading_spaces = 0;
 }
 
-void set_leading_spaces(int n)
-{
+void set_leading_spaces(int n) {
     print_leading_spaces = n;
 }
 
-float parse_float(const char *str)
-{
+float parse_float(const char *str) {
     char *next;
     float val = strtof(str, &next);
     if (strlen(next))
@@ -195,8 +170,7 @@ float parse_float(const char *str)
     return val;
 }
 
-long parse_long(const char *str)
-{
+long parse_long(const char *str) {
     char *next;
     long val = strtol(str, &next, 0); // base 0 allows format detection
     if (strlen(next))
@@ -205,20 +179,16 @@ long parse_long(const char *str)
     return val;
 }
 
-const char *get_error_string()
-{
+const char *get_error_string() {
     return strerror(errno);
 }
 
-Log_Level get_log_level()
-{
+Log_Level get_log_level() {
     return log_level;
 }
 
-void set_log_level(Log_Level lvl)
-{
-    if (lvl < 0 || lvl >= LOG_ERROR)
-    {
+void set_log_level(Log_Level lvl) {
+    if (lvl < 0 || lvl >= LOG_ERROR) {
         err("Invalid log level: %d\n", lvl);
         err("Must be between 0 and %d\n", LOG_RAW);
         raw("   LOG_PROOF       : %d\n", LOG_PROOF);
@@ -234,8 +204,7 @@ void set_log_level(Log_Level lvl)
     msg("Log level set to %s\n", Log_Level_String[log_level]);
 }
 
-void _log(const char *filename, const int line, const Log_Level lvl, const char *fmt, ...)
-{
+void _log(const char *filename, const int line, const Log_Level lvl, const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
@@ -247,27 +216,26 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
     FILE *fd;
 
     int bytes_printed = -1;
-    switch (lvl)
-    {
+    switch (lvl) {
     case LOG_PROOF:
         fd = stdout;
         bytes_printed = asprintf(&new_fmt, "%s[PRF] %s%s%s",
-                 CLR_CYN, CLR_NRM, space_buffer, fmt);
+                                 CLR_CYN, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_DEBUG:
         fd = stdout;
         bytes_printed = asprintf(&new_fmt, "%s[DBG] %s%s%s",
-                 CLR_BLU, CLR_NRM, space_buffer, fmt);
+                                 CLR_BLU, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_WARN:
         fd = stdout;
         bytes_printed = asprintf(&new_fmt, "%s[WRN] %s%s%s",
-                 CLR_YEL, CLR_NRM, space_buffer, fmt);
+                                 CLR_YEL, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_MESSAGE:
         fd = stdout;
         bytes_printed = asprintf(&new_fmt, "%s[MSG] %s%s%s",
-                 CLR_MAG, CLR_NRM, space_buffer, fmt);
+                                 CLR_MAG, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_RAW:
         fd = stdout;
@@ -276,23 +244,23 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
     case LOG_ERROR:
         fd = stderr;
         bytes_printed = asprintf(&new_fmt, "%s[ERR] %s%s%s",
-                 CLR_RED, CLR_NRM, space_buffer, fmt);
+                                 CLR_RED, CLR_NRM, space_buffer, fmt);
         break;
     case LOG_DEATH:
         fd = stderr;
         bytes_printed = asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
-                 CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
+                                 CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
         break;
     default:
         fd = stdout;
         bytes_printed = asprintf(&new_fmt, "%s[???] %s%s%s",
-                 CLR_RED, CLR_NRM, space_buffer, fmt);
+                                 CLR_RED, CLR_NRM, space_buffer, fmt);
     }
 
-    if(bytes_printed == -1){
+    if (bytes_printed == -1) {
         fprintf(stderr, "Error: asprintf() failed to print for log level %s", Log_Level_String[log_level]);
     }
-    else{
+    else {
         vfprintf(fd, new_fmt, args);
         fflush(fd);
     }
@@ -301,24 +269,21 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 
     va_end(args);
 
-    if (lvl == LOG_DEATH)
-    {
+    if (lvl == LOG_DEATH) {
         if (errno != 0)
             fprintf(fd, "\nError before death: code %d (%s)\n", errno, get_error_string());
         exit(1);
     }
 }
 
-void nsleep(long ns)
-{
+void nsleep(long ns) {
     struct timespec sleep_time;
     sleep_time.tv_sec = ns / 1000000000;
     sleep_time.tv_nsec = ns % 1000000000;
     nanosleep(&sleep_time, NULL);
 }
 
-double get_timestamp_us()
-{
+double get_timestamp_us() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_usec + tv.tv_sec * 1e6;
@@ -331,10 +296,7 @@ DECL_ARG_CALLBACK(test_logs);
 DECL_ARG_CALLBACK(test_death);
 
 const argument_bundle argb[] = {
-    /* {short_form, long_form, description, exp_val, call_back} */
-    {"h", "help", "Print this help text and exit", false, helpAndExit},
-    {"l", "log", "Test logs", false, test_logs},
-    {"d", "die", "Test death", false, test_death}
+    /* {short_form, long_form, description, exp_val, call_back} */ {"h", "help", "Print this help text and exit", false, helpAndExit}, {"l", "log", "Test logs", false, test_logs}, {"d", "die", "Test death", false, test_death}
     /* More arguments... */
 };
 
@@ -369,11 +331,11 @@ DECL_ARG_CALLBACK(test_logs) {
     msg("Test done - now exit with die()...\n");
 }
 
-DECL_ARG_CALLBACK(test_death){
+DECL_ARG_CALLBACK(test_death) {
     die("Exit successful\n");
 }
 
-int main(int argc, const char ** argv){
+int main(int argc, const char ** argv) {
     parse_args(argc, argv, argb, helpAndExit);
     return 0;
 }
