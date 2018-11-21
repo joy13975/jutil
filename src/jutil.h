@@ -96,7 +96,7 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define raw_at(LVL, FMT, ...) do{ if (LVL >= get_log_level()) raw(FMT, ##__VA_ARGS__); } while(0)
 #define die(FMT, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
 #define panic_if(COND, FMT, ...) do { if(COND) _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
-#define panic_when(COND) do { if(COND) _log(__FILE__, __LINE__, LOG_DEATH, "%s: COND", __PRETTY_FUNCTION__); } while(0)
+#define panic_when(COND) do { if(COND) _log(__FILE__, __LINE__, LOG_DEATH, "Panic!\n%s\n\tCondition met: " #COND "\n", __PRETTY_FUNCTION__); } while(0)
 #endif //_SILENT
 
 Log_Level get_log_level();
