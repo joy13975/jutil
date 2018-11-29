@@ -85,7 +85,7 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define raw(FMT, ...)
 #define raw_at(LVL, FMT, ...)
 #define die(FMT, ...)
-#define panic_if(COND, FMT, ...)
+#define panic_if(COND_EXPR, FMT, ...)
 #else
 #define prf(FMT, ...) do { if (LOG_PROOF >= get_log_level()) _log(__FILE__, __LINE__, LOG_PROOF, FMT, ##__VA_ARGS__); } while(0)
 #define dbg(FMT, ...) do { if (LOG_DEBUG >= get_log_level()) _log(__FILE__, __LINE__, LOG_DEBUG, FMT, ##__VA_ARGS__); } while(0)
@@ -95,8 +95,8 @@ void _log(const char *filename, const int line, const Log_Level lvl, const char 
 #define raw(FMT, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, FMT, ##__VA_ARGS__); } while(0)
 #define raw_at(LVL, FMT, ...) do{ if (LVL >= get_log_level()) raw(FMT, ##__VA_ARGS__); } while(0)
 #define die(FMT, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
-#define panic_if(COND, FMT, ...) do { if(COND) _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
-#define panic_when(COND) do { if(COND) _log(__FILE__, __LINE__, LOG_DEATH, "Panic!\n%s\n\tCondition met: " #COND "\n", __PRETTY_FUNCTION__); } while(0)
+#define panic_if(COND_EXPR, FMT, ...) do { if(COND_EXPR) _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
+#define panic_when(COND_EXPR) do { if(COND_EXPR) _log(__FILE__, __LINE__, LOG_DEATH, "Panic!\n%s\nCondition met:\n\t" #COND_EXPR "\n", __PRETTY_FUNCTION__); } while(0)
 #endif //_SILENT
 
 Log_Level get_log_level();
