@@ -10,15 +10,38 @@ extern "C" {
 #include <stddef.h>
 
 /* Enum Generation */
-#define GEN_ENUM(ITEM) ITEM,
-#define GEN_STRING(STRING) #STRING,
-#define GEN_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM) \
+
+// New style scoped enum declaration
+#define CPP_GEN_ENUM(ITEM) ITEM,
+#define CPP_GEN_STRING(STRING) #STRING,
+#define CPP_GEN_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM) \
+    enum class TYPE_NAME { \
+        FOREACH_ITEM(CPP_GEN_ENUM) \
+    }; \
+    static const char * TYPE_STRING_NAME[] = { \
+        FOREACH_ITEM(C_GEN_STRING) \
+    }; \
+    inline const char * TYPE_NAME##ToCStr(const TYPE_NAME & val) { \
+        return TYPE_STRING_NAME[static_cast<int>(val)]; \
+    } \
+
+
+// Old style unscoped enum declaration
+#define C_GEN_ENUM(ITEM) ITEM,
+#define C_GEN_STRING(STRING) #STRING,
+#define C_GEN_ENUM_AND_STRING(TYPE_NAME, TYPE_STRING_NAME, FOREACH_ITEM) \
     typedef enum { \
-        FOREACH_ITEM(GEN_ENUM) \
+        FOREACH_ITEM(C_GEN_ENUM) \
     } TYPE_NAME; \
     static const char *TYPE_STRING_NAME[] = { \
-        FOREACH_ITEM(GEN_STRING) \
-    };
+        FOREACH_ITEM(CPP_GEN_STRING) \
+    }; \
+
+#ifdef __cplusplus
+#define GEN_ENUM_AND_STRING(...) CPP_GEN_ENUM_AND_STRING(__VA_ARGS__)
+#else
+#define GEN_ENUM_AND_STRING(...) C_GEN_ENUM_AND_STRING(__VA_ARGS__)
+#endif  /* ifdef __cplusplus */
 
 #define GEN_ITEM_VAL(ITEM, VAL) ITEM = VAL,
 #define GEN_STRING_VAL(STRING, VAL) if(e == VAL) return #STRING;
@@ -65,7 +88,7 @@ GEN_ENUM_AND_STRING(ALU_Flag, ALU_Flag_String, FOREACH_ALU_FLAG);
     MACRO(LOG_ERROR) \
     MACRO(LOG_DEATH)
 
-GEN_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
+C_GEN_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 
@@ -117,10 +140,10 @@ typedef struct argument_bundle
 } argument_bundle;
 
 void _parse_args(const int argc,
-                char const *argv[],
-                const int argbc,
-                const argument_bundle *argbv,
-                void (*const failure_callback) (const char *failure_arg_in));
+                 char const *argv[],
+                 const int argbc,
+                 const argument_bundle *argbv,
+                 void (*const failure_callback) (const char *failure_arg_in));
 #define parse_args(argc, argv, argb, fail_callback) \
     _parse_args(argc, \
                 argv, \
