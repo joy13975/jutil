@@ -21,7 +21,7 @@ extern "C" {
     static const char * TYPE_STRING_NAME[] = { \
         FOREACH_ITEM(C_GEN_STRING) \
     }; \
-    inline const char * TYPE_NAME##ToCStr(const TYPE_NAME & val) { \
+    inline const char * TYPE_NAME##ToCStr(const TYPE_NAME val) { \
         return TYPE_STRING_NAME[static_cast<int>(val)]; \
     } \
 
