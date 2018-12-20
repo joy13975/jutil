@@ -7,8 +7,6 @@ LDFLAGS=
 LDLIBS=
 INC_FLAGS=-I.
 
-TEST_ARGS:=
-
 SRC_DIR:=src
 OBJ_DIR:=.obj
 $(shell mkdir -p $(OBJ_DIR)/$(SRC_DIR))
@@ -32,11 +30,6 @@ $(EXE): $(OBJS)
 	$(COMPILE) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 -include $(DEPS)
-
-fresh: clean all
-
-test: $(EXE)
-	./$(EXE) $(TEST_ARGS)
 
 PHONY: clean
 
