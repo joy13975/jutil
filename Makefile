@@ -5,6 +5,7 @@ DEFS=-D_TEST_JUTIL
 COMPILE=$(CC) $(CFLAGS) $(DEFS)
 LDFLAGS=
 LDLIBS=
+INC_FLAGS=-I.
 
 TEST_ARGS:=
 
@@ -23,7 +24,7 @@ all: $(EXE)
 EXTS=c cc
 define make_rule
 $(OBJ_DIR)/%.o: %.$1
-	$$(COMPILE) -o $$@ -c $$<
+	$$(COMPILE) -o $$@ -c $$< $(INC_FLAGS)
 endef
 $(foreach EXT,$(EXTS),$(eval $(call make_rule,$(EXT))))
 
