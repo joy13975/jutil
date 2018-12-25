@@ -101,7 +101,7 @@ GEN_ENUM_AND_STRING(ALU_Flag, ALU_Flag_String, FOREACH_ALU_FLAG);
     MACRO(LOG_ERROR) \
     MACRO(LOG_DEATH)
 
-C_GEN_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
+C_GEN_ENUM_AND_STRING(LogLvl, LogLvlNames, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 
@@ -143,14 +143,15 @@ C_GEN_ENUM_AND_STRING(Log_Level, Log_Level_String, FOREACH_LOG_LEVEL);
 
 
 /* Log Level (1) */
-static Log_Level log_level = UTIL_DEFAULT_LOG_LEVEL;
 
-static inline Log_Level get_log_level() {
-    return log_level;
+extern LogLvl J_UTIL_LOG_LEVEL;
+
+static inline LogLvl get_log_level() {
+    return J_UTIL_LOG_LEVEL;
 }
 
 // The following function is way down there due to ordering.
-// static inline void set_log_level(Log_Level lvl);
+// static inline void set_log_level(LogLvl lvl);
 
 
 
@@ -178,7 +179,7 @@ static inline char const* get_error_string() {
 static inline void _log(
     char const* filename,
     const int line,
-    const Log_Level lvl,
+    const LogLvl lvl,
     char const* fmt,
     ...) {
     va_list args;
@@ -234,7 +235,9 @@ static inline void _log(
     }
 
     if (bytes_printed == -1) {
-        fprintf(stderr, "Error: asprintf() failed to print for log level %s", Log_Level_String[log_level]);
+        fprintf(stderr,
+            "Error: asprintf() failed to print for log level %s",
+            LogLvlNames[get_log_level()]);
     }
     else {
         vfprintf(fd, new_fmt, args);
@@ -254,7 +257,7 @@ static inline void _log(
 
 
 /* Log Level (2) */
-static inline void set_log_level(Log_Level lvl) {
+static inline void set_log_level(LogLvl lvl) {
     if (lvl < 0 || lvl >= LOG_ERROR) {
         err("Invalid log level: %d\n", lvl);
         err("Must be between 0 and %d\n", LOG_RAW);
@@ -263,12 +266,15 @@ static inline void set_log_level(Log_Level lvl) {
         raw("   LOG_WARN        : %d\n", LOG_WARN);
         raw("   LOG_MESSAGE     : %d\n", LOG_MESSAGE);
         raw("   LOG_RAW         : %d\n", LOG_RAW);
+
+        // ERROR and DEATH must always be printed.
         // raw("   LOG_ERROR  : %d\n", LOG_ERROR);
         // raw("   LOG_DEATH  : %d\n", LOG_DEATH);
         exit(1);
     }
-    log_level = lvl;
-    msg("Log level set to %s\n", Log_Level_String[log_level]);
+
+    J_UTIL_LOG_LEVEL = lvl;
+    dbg("Log level set to %s\n", LogLvlNames[lvl]);
 }
 
 /* Argument Parsing */

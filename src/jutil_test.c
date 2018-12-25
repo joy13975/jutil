@@ -7,7 +7,10 @@ DECL_ARG_CALLBACK(test_logs);
 DECL_ARG_CALLBACK(test_death);
 
 const argument_bundle argb[] = {
-    /* {short_form, long_form, description, exp_val, call_back} */ {"h", "help", "Print this help text and exit", false, help_and_exit}, {"l", "log", "Test logs", false, test_logs}, {"d", "die", "Test death", false, test_death}
+    /* {short_form, long_form, description, exp_val, call_back} */
+    {"h", "help", "Print this help text and exit", false, help_and_exit},
+    {"l", "log", "Test logs", false, test_logs},
+    {"d", "die", "Test death", false, test_death}
     /* More arguments... */
 };
 
