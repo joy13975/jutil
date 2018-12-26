@@ -133,7 +133,6 @@ C_GEN_ENUM_AND_STRING(LogLvl, LogLvlNames, FOREACH_LOG_LEVEL);
             }\
         }\
     } while(0)
-#define panic_when(COND_EXPR) do { if(COND_EXPR) _log(__FILE__, __LINE__, LOG_DEATH, "Panic!\n%s\nCondition met:\n\t" #COND_EXPR "\n", __PRETTY_FUNCTION__); } while(0)
 #endif //_SILENT
 
 /* Color Printing */
