@@ -69,27 +69,21 @@ extern "C" {
 
 //enum-string example:
 //instead of:
-/*
-typedef enum {
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    CMP
-} ALU_Flag;
-*/
+// typedef enum {
+//     ADD,
+//     SUB,
+//     MUL,
+//     DIV,
+//     CMP
+// } ALUFlag;
 
-//do:
-/*
-#define FOREACH_ALU_FLAG(MACRO) \
-    MACRO(ADD) \
-    MACRO(SUB) \
-    MACRO(MUL) \
-    MACRO(DIV) \
-    MACRO(CMP) \
-
-GEN_ENUM_AND_STRING(ALU_Flag, ALU_Flag_String, FOREACH_ALU_FLAG);
-*/
+// #define FOREACH_ALU_FLAG(MACRO) \
+//     MACRO(ADD) \
+//     MACRO(SUB) \
+//     MACRO(MUL) \
+//     MACRO(DIV) \
+//     MACRO(CMP)
+// GEN_ENUM_AND_STRING(ALUFlag, ALUFlagNames, FOREACH_ALU_FLAG);
 
 /* Logging */
 #define FOREACH_LOG_LEVEL(MACRO) \
@@ -123,8 +117,22 @@ C_GEN_ENUM_AND_STRING(LogLvl, LogLvlNames, FOREACH_LOG_LEVEL);
 #define msg(FMT, ...) do { if (LOG_MESSAGE >= get_log_level()) _log(__FILE__, __LINE__, LOG_MESSAGE, FMT, ##__VA_ARGS__); } while(0)
 #define raw(FMT, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, FMT, ##__VA_ARGS__); } while(0)
 #define raw_at(LVL, FMT, ...) do{ if (LVL >= get_log_level()) raw(FMT, ##__VA_ARGS__); } while(0)
-#define die(FMT, ...) do { _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
-#define panic_if(COND_EXPR, FMT, ...) do { if(COND_EXPR) _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__); } while(0)
+#define die(FMT, ...) \
+    do {\
+        _Pragma("omp single")\
+        {\
+            _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__);\
+        }\
+    } while(0)
+#define panic_if(COND_EXPR, FMT, ...) \
+    do {\
+        if(COND_EXPR) {\
+            _Pragma("omp single")\
+            {\
+                _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__);\
+            }\
+        }\
+    } while(0)
 #define panic_when(COND_EXPR) do { if(COND_EXPR) _log(__FILE__, __LINE__, LOG_DEATH, "Panic!\n%s\nCondition met:\n\t" #COND_EXPR "\n", __PRETTY_FUNCTION__); } while(0)
 #endif //_SILENT
 
@@ -236,8 +244,8 @@ static inline void _log(
 
     if (bytes_printed == -1) {
         fprintf(stderr,
-            "Error: asprintf() failed to print for log level %s",
-            LogLvlNames[get_log_level()]);
+                "Error: asprintf() failed to print for log level %s",
+                LogLvlNames[get_log_level()]);
     }
     else {
         vfprintf(fd, new_fmt, args);
