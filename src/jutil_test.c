@@ -19,7 +19,6 @@ JUTIL_ARG_CALLBACK_DECL(help_and_exit) {
     exit(1);
 }
 JUTIL_ARG_CALLBACK_DECL(test_logs) {
-    JUtil.gated_log(LOGLVL_DEBUG, stdout, "[CUSTOM!]", "Log\n");
     JUtil.error("Error\n");
     JUtil.warn("Warning\n");
     JUtil.info("Message\n");

@@ -11,6 +11,8 @@
 #include <sys/stat.h>
 #include <omp.h>
 
+#include "types.h"
+
 /* Local Free Functions */
 #define PASS_VA_ARGS(TO_FUNC, LAST_ARG, ...) \
     do {\
@@ -53,6 +55,14 @@ void log_wrapper(
     ...)
 {
     PASS_VA_ARGS(_log, fmt, fd, tag, fmt);
+}
+
+void print(
+    JUtilLogLvl const loglvl,
+    char const* const fmt,
+    ...)
+{
+    PASS_VA_ARGS(_log, fmt, stdout, "", fmt);
 }
 
 #define LOG_FUNC_DEF(FUNC_NAME) \
@@ -117,7 +127,7 @@ LOG_FUNC_DEF(error) {
         _log,
         fmt,
         stderr,
-        COLOR_RED"[ ERROR ]"COLOR_CLEAR,
+        COLOR_RED "[ ERROR ]" COLOR_CLEAR,
         fmt);
 }
 
@@ -127,7 +137,7 @@ LOG_FUNC_DEF(warn) {
         fmt,
         LOGLVL_WARNING,
         stderr,
-        COLOR_YELLOW"[WARNING]"COLOR_CLEAR,
+        COLOR_YELLOW "[WARNING]" COLOR_CLEAR,
         fmt);
 }
 
@@ -137,7 +147,7 @@ LOG_FUNC_DEF(info) {
         fmt,
         LOGLVL_INFO,
         stdout,
-        COLOR_MAGENTA"[ INFO  ]"COLOR_CLEAR,
+        COLOR_MAGENTA "[ INFO  ]" COLOR_CLEAR,
         fmt);
 }
 
@@ -147,7 +157,7 @@ LOG_FUNC_DEF(debug) {
         fmt,
         LOGLVL_DEBUG,
         stdout,
-        COLOR_BLUE"[ DEBUG ]"COLOR_CLEAR,
+        COLOR_BLUE "[ DEBUG ]" COLOR_CLEAR,
         fmt);
 }
 
@@ -366,7 +376,6 @@ JUtilLibraryStruct const JUtil = {
     .NAME = NAME
 
     /* Logging */
-    .gated_log = gated_log_wrapper,
     ASSIGN(panic),
     ASSIGN(panic_if),
 

@@ -21,13 +21,6 @@ extern "C" {
 typedef struct {
 
     /* Logging */
-    void (*const gated_log)(
-        JUtilLogLvl const loglvl,
-        FILE * const fd,
-        char const* const tag,
-        char const* const fmt,
-        ...);
-
 #define LOG_FUNC_PTR_DECL(FUNC_NAME) \
     void (*const FUNC_NAME)(char const* const fmt, ...)
 

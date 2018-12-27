@@ -11,8 +11,7 @@
     MACRO(LOGLVL_INFO) \
     MACRO(LOGLVL_DEBUG) \
     MACRO(LOGLVL_MAX)
-
-GEN_ENUM_AND_STRING(JUtilLogLvl, JUtilLogLvlNames, FOREACH_LOGLVL);
+C_GEN_ENUM_AND_STRING(JUtilLogLvl, JUtilLogLvlNames, FOREACH_LOGLVL);
 
 typedef struct
 {

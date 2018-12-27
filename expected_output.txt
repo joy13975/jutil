@@ -1,4 +1,3 @@
-[CUSTOM!] Log
 [31m[ ERROR ][0m Error
 [33m[WARNING][0m Warning
 [35m[ INFO  ][0m Message
