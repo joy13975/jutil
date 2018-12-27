@@ -48,46 +48,46 @@ void _log(
     free(new_format);
 }
 
-void log_wrapper(
-    FILE * const fd,
-    char const* const tag,
-    char const* const fmt,
-    ...)
-{
-    PASS_VA_ARGS(_log, fmt, fd, tag, fmt);
-}
-
-void print(
-    JUtilLogLvl const loglvl,
-    char const* const fmt,
-    ...)
-{
-    PASS_VA_ARGS(_log, fmt, stdout, "", fmt);
-}
-
 #define LOG_FUNC_DEF(FUNC_NAME) \
     void FUNC_NAME(char const* const fmt, ...)
-LOG_FUNC_DEF(error); // Forward decl
 
-LOG_FUNC_DEF(panic) {
+void _panic_internal(
+    char const* const fmt,
+    va_list args) {
     #pragma omp single
     {
         int const errno_cpy = errno;
+
+        fprintf(
+            stderr,
+            "\n" COLOR_RED
+            "---------------------------------------\n"
+            "---------------- PANIC ----------------\n"
+            "---------------------------------------\n"
+            COLOR_CLEAR);
+
         if (errno_cpy) {
             fprintf(
                 stderr,
-                "\n"
-                "---------------------------------------\n"
-                "---------------- PANIC ---------------\n"
-                "---------------------------------------\n"
                 "Error before death: code %d (%s)\n",
                 errno_cpy,
                 strerror(errno_cpy));
         }
 
-        PASS_VA_ARGS(error, fmt, fmt);
+        _log(
+            stderr,
+            COLOR_RED "[ PANIC ]" COLOR_CLEAR,
+            fmt,
+            args);
 
         exit(1);
+    }
+}
+
+LOG_FUNC_DEF(panic) {
+    #pragma omp single
+    {
+        PASS_VA_ARGS(_panic_internal, fmt, fmt);
     }
 }
 
@@ -96,10 +96,11 @@ void panic_if(
     char const* const fmt,
     ...) {
     if (predicate) {
-        PASS_VA_ARGS(panic, fmt, fmt);
+        PASS_VA_ARGS(_panic_internal, fmt, fmt);
     }
 }
 
+bool check_log_lvl(JUtilLogLvl const lvl);
 void gated_log(
     JUtilLogLvl const loglvl,
     FILE * const fd,
@@ -107,19 +108,9 @@ void gated_log(
     char const* const fmt,
     va_list args)
 {
-    if (_JUTIL_LOGLVL >= loglvl) {
+    if (check_log_lvl(loglvl)) {
         _log(fd, tag, fmt, args);
     }
-}
-
-void gated_log_wrapper(
-    JUtilLogLvl const loglvl,
-    FILE * const fd,
-    char const* const tag,
-    char const* const fmt,
-    ...)
-{
-    PASS_VA_ARGS(gated_log, fmt, loglvl, fd, tag, fmt);
 }
 
 LOG_FUNC_DEF(error) {
@@ -180,10 +171,9 @@ void set_log_lvl(JUtilLogLvl const lvl) {
             LOGLVL_MAX - 1);
 
         for (int i = LOGLVL_MIN + 1; i < LOGLVL_MAX; ++i) {
-            log_wrapper(
+            fprintf(
                 stderr,
-                /*tag=*/"  ",
-                /*fmt=*/"%s=%d\n",
+                "  %s=%d\n",
                 JUtilLogLvlNames[i],
                 i);
         }
@@ -275,7 +265,7 @@ void parse_args(
 
 void print_arg_title(char const* const title) {
     set_leading_spaces(4);
-    log_wrapper(stdout, "", "%s\n", title);
+    fprintf(stdout, "%s\n", title);
     reset_leading_spaces();
 }
 
@@ -285,9 +275,9 @@ void print_arg_bundles(
     for (size_t i = 0; i < n; i++) {
         JUtilArgBundle const* ab = &(argbv[i]);
         set_leading_spaces(8);
-        log_wrapper(stdout, "", "-%s, --%s\n", ab->short_form, ab->long_form);
+        fprintf(stdout, "-%s, --%s\n", ab->short_form, ab->long_form);
         set_leading_spaces(12);
-        log_wrapper(stdout, "", "%s\n", ab->description);
+        fprintf(stdout, "%s\n", ab->description);
     }
     reset_leading_spaces();
 }
@@ -295,16 +285,18 @@ void print_arg_bundles(
 float parse_float(char const* const str) {
     char *next;
     float val = strtof(str, &next);
-    if (strlen(next))
+    if (strlen(next)) {
         panic("Failed to parse float from \"%s\"\n", str);
+    }
     return val;
 }
 
 long parse_long(char const* const str) {
     char *next;
     long val = strtol(str, &next, 0); // base 0 allows format detection
-    if (strlen(next))
+    if (strlen(next)) {
         panic("Failed to parse long integer from \"%s\"\n", str);
+    }
 
     return val;
 }
