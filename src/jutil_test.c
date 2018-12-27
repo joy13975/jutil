@@ -19,30 +19,31 @@ DECL_ARG_CALLBACK(help_and_exit) {
     exit(1);
 }
 DECL_ARG_CALLBACK(test_logs) {
-    prf("Proof\n");
-
     dbg("Debug\n");
-
-    wrn("Warning\n");
-
-    msg("Message\n");
-
+    info("Message\n");
+    warn("Warning\n");
+    err("Error\n");
     raw("Raw\n");
 
     set_log_level(LOG_DEBUG);
-    raw_at(LOG_DEBUG, "Raw at Debug (should show)\n");
+    gated_raw(LOG_DEBUG, "Should show\n");
+    gated_raw(LOG_INFO, "Should show\n");
+    gated_raw(LOG_WARNING, "Should show\n");
+    gated_raw(LOG_ERROR, "Should show\n");
 
-    set_log_level(LOG_WARN);
-    raw_at(LOG_DEBUG, "Raw at Debug (should not show)\n");
+    set_log_level(LOG_INFO);
+    gated_raw(LOG_DEBUG, "Should NOT show\n");
+    gated_raw(LOG_INFO, "Should show\n");
+    gated_raw(LOG_WARNING, "Should show\n");
+    gated_raw(LOG_ERROR, "Should show\n");
 
-    raw_at(LOG_WARN, "Raw at Warning (should show)\n");
+    set_log_level(LOG_WARNING);
+    gated_raw(LOG_DEBUG, "Should NOT show\n");
+    gated_raw(LOG_INFO, "Should NOT show\n");
+    gated_raw(LOG_WARNING, "Should show\n");
+    gated_raw(LOG_ERROR, "Should show\n");
 
-    set_log_level(LOG_MESSAGE);
-    raw_at(LOG_WARN, "Raw at Warning (should NOT show)\n");
-
-    err("Error\n");
-
-    msg("Test done - now exit with die()...\n");
+    info("Logging tests done\n");
 }
 
 DECL_ARG_CALLBACK(test_death) {

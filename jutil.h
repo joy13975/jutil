@@ -87,52 +87,52 @@ extern "C" {
 
 /* Logging */
 #define FOREACH_LOG_LEVEL(MACRO) \
-    MACRO(LOG_PROOF) \
     MACRO(LOG_DEBUG) \
-    MACRO(LOG_WARN) \
-    MACRO(LOG_MESSAGE) \
-    MACRO(LOG_RAW) \
-    MACRO(LOG_ERROR) \
-    MACRO(LOG_DEATH)
+    MACRO(LOG_INFO) \
+    MACRO(LOG_WARNING) \
+    MACRO(LOG_QUIET) \
+    MACRO(LOG_ERROR)
 
 C_GEN_ENUM_AND_STRING(LogLvl, LogLvlNames, FOREACH_LOG_LEVEL);
 
 #define UTIL_DEFAULT_LOG_LEVEL LOG_DEBUG
 
 #ifdef _SILENT
-#define prf(FMT, ...)
-#define dbg(FMT, ...)
-#define wrn(FMT, ...)
-#define err(FMT, ...)
-#define msg(FMT, ...)
-#define raw(FMT, ...)
-#define raw_at(LVL, FMT, ...)
-#define die(FMT, ...)
-#define panic_if(COND_EXPR, FMT, ...)
+#define dbg(...)
+#define info(...)
+#define warn(...)
+#define err(...)
+#define raw(...)
+#define gated_raw(...)
+#define die(...)
+#define panic_if(...)
 #else
-#define prf(FMT, ...) do { if (LOG_PROOF >= get_log_level()) _log(__FILE__, __LINE__, LOG_PROOF, FMT, ##__VA_ARGS__); } while(0)
-#define dbg(FMT, ...) do { if (LOG_DEBUG >= get_log_level()) _log(__FILE__, __LINE__, LOG_DEBUG, FMT, ##__VA_ARGS__); } while(0)
-#define wrn(FMT, ...) do { if (LOG_WARN >= get_log_level()) _log(__FILE__, __LINE__, LOG_WARN, FMT, ##__VA_ARGS__); } while(0)
+#define gated_log(GATE_LVL, FMT, ...) \
+    do { if (get_log_level() <= GATE_LVL) _log(__FILE__, __LINE__, GATE_LVL, FMT, ##__VA_ARGS__); } while(0)
+#define dbg(FMT, ...) gated_log(LOG_DEBUG, FMT, ##__VA_ARGS__)
+#define info(FMT, ...) gated_log(LOG_INFO, FMT, ##__VA_ARGS__)
+#define warn(FMT, ...) gated_log(LOG_WARNING, FMT, ##__VA_ARGS__)
 #define err(FMT, ...) _log(__FILE__, __LINE__, LOG_ERROR, FMT, ##__VA_ARGS__)
-#define msg(FMT, ...) do { if (LOG_MESSAGE >= get_log_level()) _log(__FILE__, __LINE__, LOG_MESSAGE, FMT, ##__VA_ARGS__); } while(0)
-#define raw(FMT, ...) do { if (LOG_RAW >= get_log_level()) _log(__FILE__, __LINE__, LOG_RAW, FMT, ##__VA_ARGS__); } while(0)
-#define raw_at(LVL, FMT, ...) do{ if (LVL >= get_log_level()) raw(FMT, ##__VA_ARGS__); } while(0)
-#define die(FMT, ...) \
+#define raw(FMT, ...) _log(__FILE__, __LINE__, LOG_QUIET, FMT, ##__VA_ARGS__)
+#define gated_raw(LVL, FMT, ...) \
+    do { if (get_log_level() <= LVL) _log(__FILE__, __LINE__, LOG_QUIET, FMT, ##__VA_ARGS__); } while(0)
+#define die(FMT, ...)\
     do {\
-        _Pragma("omp single")\
-        {\
-            _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__);\
+        _Pragma("omp single") {\
+            int const errno_cpy = errno;\
+            _log(__FILE__, __LINE__, LOG_ERROR, FMT, ##__VA_ARGS__);\
+            if (errno_cpy)\
+                fprintf(\
+                    stderr,\
+                    "\n---------------------------------------\n"\
+                    "Error before death: code %d (%s)\n",\
+                    errno_cpy,\
+                    strerror(errno_cpy));\
+            exit(1);\
         }\
     } while(0)
 #define panic_if(COND_EXPR, FMT, ...) \
-    do {\
-        if(COND_EXPR) {\
-            _Pragma("omp single")\
-            {\
-                _log(__FILE__, __LINE__, LOG_DEATH, FMT, ##__VA_ARGS__);\
-            }\
-        }\
-    } while(0)
+    do { if(COND_EXPR) die(FMT, ##__VA_ARGS__); } while(0)
 #endif //_SILENT
 
 /* Color Printing */
@@ -177,10 +177,6 @@ static inline void reset_leading_spaces() {
     print_leading_spaces = 0;
 }
 
-static inline char const* get_error_string() {
-    return strerror(errno);
-}
-
 
 /* Logging */
 static inline void _log(
@@ -196,48 +192,38 @@ static inline void _log(
     memset(space_buffer, ' ', print_leading_spaces);
     space_buffer[print_leading_spaces] = '\0';
 
-    char *new_fmt;
+    char *format;
     FILE *fd;
 
     int bytes_printed = -1;
     switch (lvl) {
-    case LOG_PROOF:
-        fd = stdout;
-        bytes_printed = asprintf(&new_fmt, "%s[PRF] %s%s%s",
-                                 CLR_CYN, CLR_NRM, space_buffer, fmt);
-        break;
     case LOG_DEBUG:
         fd = stdout;
-        bytes_printed = asprintf(&new_fmt, "%s[DBG] %s%s%s",
+        bytes_printed = asprintf(&format, "%s[DBG] %s%s%s",
                                  CLR_BLU, CLR_NRM, space_buffer, fmt);
         break;
-    case LOG_WARN:
+    case LOG_INFO:
         fd = stdout;
-        bytes_printed = asprintf(&new_fmt, "%s[WRN] %s%s%s",
-                                 CLR_YEL, CLR_NRM, space_buffer, fmt);
-        break;
-    case LOG_MESSAGE:
-        fd = stdout;
-        bytes_printed = asprintf(&new_fmt, "%s[MSG] %s%s%s",
+        bytes_printed = asprintf(&format, "%s[INFO] %s%s%s",
                                  CLR_MAG, CLR_NRM, space_buffer, fmt);
         break;
-    case LOG_RAW:
+    case LOG_WARNING:
         fd = stdout;
-        bytes_printed = asprintf(&new_fmt, "%s%s", space_buffer, fmt);
+        bytes_printed = asprintf(&format, "%s[WARNING] %s%s%s",
+                                 CLR_YEL, CLR_NRM, space_buffer, fmt);
+        break;
+    case LOG_QUIET:
+        fd = stdout;
+        bytes_printed = asprintf(&format, "%s%s", space_buffer, fmt);
         break;
     case LOG_ERROR:
         fd = stderr;
-        bytes_printed = asprintf(&new_fmt, "%s[ERR] %s%s%s",
+        bytes_printed = asprintf(&format, "%s[ERROR] %s%s%s",
                                  CLR_RED, CLR_NRM, space_buffer, fmt);
-        break;
-    case LOG_DEATH:
-        fd = stderr;
-        bytes_printed = asprintf(&new_fmt, "\n%s[DIE %s:%d] %s%s%s",
-                                 CLR_RED, filename,  line, CLR_NRM, space_buffer, fmt);
         break;
     default:
         fd = stdout;
-        bytes_printed = asprintf(&new_fmt, "%s[???] %s%s%s",
+        bytes_printed = asprintf(&format, "%s[???] %s%s%s",
                                  CLR_RED, CLR_NRM, space_buffer, fmt);
     }
 
@@ -247,19 +233,13 @@ static inline void _log(
                 LogLvlNames[get_log_level()]);
     }
     else {
-        vfprintf(fd, new_fmt, args);
+        vfprintf(fd, format, args);
         fflush(fd);
     }
 
-    free(new_fmt);
+    free(format);
 
     va_end(args);
-
-    if (lvl == LOG_DEATH) {
-        if (errno != 0)
-            fprintf(fd, "\nError before death: code %d (%s)\n", errno, get_error_string());
-        exit(1);
-    }
 }
 
 
@@ -267,16 +247,14 @@ static inline void _log(
 static inline void set_log_level(LogLvl lvl) {
     if (lvl < 0 || lvl >= LOG_ERROR) {
         err("Invalid log level: %d\n", lvl);
-        err("Must be between 0 and %d\n", LOG_RAW);
-        raw("  LOG_PROOF       : %d\n", LOG_PROOF);
-        raw("  LOG_DEBUG       : %d\n", LOG_DEBUG);
-        raw("  LOG_WARN        : %d\n", LOG_WARN);
-        raw("  LOG_MESSAGE     : %d\n", LOG_MESSAGE);
-        raw("  LOG_RAW         : %d\n", LOG_RAW);
 
-        // ERROR and DEATH must always be printed.
-        // raw("   LOG_ERROR  : %d\n", LOG_ERROR);
-        // raw("   LOG_DEATH  : %d\n", LOG_DEATH);
+        int const least_verbose_lvl = LOG_QUIET;
+        gated_raw(LOG_ERROR, "Must be between 0 and %d\n", least_verbose_lvl);
+        for (int i = LOG_DEBUG; i <= least_verbose_lvl; ++i) {
+            gated_raw(LOG_ERROR, "  %s=%d\n", LogLvlNames[i], i);
+        }
+        // raw() and err() bypass verbosity level checks.
+
         exit(1);
     }
 
@@ -376,7 +354,7 @@ static inline void _print_arg_bundles(argument_bundle const* argbv, const size_t
     for (size_t i = 0; i < n; i++) {
         argument_bundle const* ab = &(argbv[i]);
         set_leading_spaces(8);
-        raw("%s, %s\n", ab->short_form, ab->long_form);
+        raw("-%s, --%s\n", ab->short_form, ab->long_form);
         set_leading_spaces(12);
         raw("%s\n", ab->description);
     }

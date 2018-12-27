@@ -4,7 +4,7 @@ script:
   - ./jutil
   - ./jutil -l
   - ./jutil -d; [ $? -eq 1 ]
-  - ./jutil --abc; [ $? -eq 1 ]
+  - ./jutil --abc; [ $? -eq 1 ] # Test argument error
 
 notifications:
   email:
