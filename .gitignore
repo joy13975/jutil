@@ -1,4 +1,5 @@
 jutil
+test_output.txt
 
 # Object files
 *.o

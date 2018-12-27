@@ -2,8 +2,9 @@ language: cpp
 script:
   - make
   - ./jutil
-  - ./jutil -l
-  - ./jutil -d; [ $? -eq 1 ]
+  - ./jutil -l &> test_output.txt
+  - diff test_output.txt expected_output.txt
+  - ./jutil -p; [ $? -eq 1 ]
   - ./jutil --abc; [ $? -eq 1 ] # Test argument error
 
 notifications:

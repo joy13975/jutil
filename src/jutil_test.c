@@ -1,56 +1,61 @@
 #include "jutil.h"
 
+#include <stdlib.h>
 
-// Test Main
-DECL_ARG_CALLBACK(help_and_exit);
-DECL_ARG_CALLBACK(test_logs);
-DECL_ARG_CALLBACK(test_death);
+JUTIL_ARG_CALLBACK_DECL(help_and_exit);
+JUTIL_ARG_CALLBACK_DECL(test_logs);
+JUTIL_ARG_CALLBACK_DECL(test_death);
 
-const argument_bundle argb[] = {
+JUtilArgBundle const arg_bundles[] = {
     /* {short_form, long_form, description, exp_val, call_back} */
     {"h", "help", "Print this help text and exit", false, help_and_exit},
     {"l", "log", "Test logs", false, test_logs},
-    {"d", "die", "Test death", false, test_death}
+    {"p", "panic", "Test panic", false, test_death}
     /* More arguments... */
 };
 
-DECL_ARG_CALLBACK(help_and_exit) {
-    print_arg_bundles(argb);
+JUTIL_ARG_CALLBACK_DECL(help_and_exit) {
+    JUtil.print_arg_bundles(arg_bundles, JUTIL_COUNT_ARG_BUNDLES(arg_bundles));
     exit(1);
 }
-DECL_ARG_CALLBACK(test_logs) {
-    dbg("Debug\n");
-    info("Message\n");
-    warn("Warning\n");
-    err("Error\n");
-    raw("Raw\n");
+JUTIL_ARG_CALLBACK_DECL(test_logs) {
+    JUtil.log(stdout, "[CUSTOM!]", "Log\n");
+    JUtil.error("Error\n");
+    JUtil.warn("Warning\n");
+    JUtil.info("Message\n");
+    JUtil.debug("Debug\n");
 
-    set_log_level(LOG_DEBUG);
-    gated_raw(LOG_DEBUG, "Should show\n");
-    gated_raw(LOG_INFO, "Should show\n");
-    gated_raw(LOG_WARNING, "Should show\n");
-    gated_raw(LOG_ERROR, "Should show\n");
+    JUtil.set_log_level(LOGLVL_DEBUG);
+    JUtil.error("Should show\n");
+    JUtil.warn("Should show\n");
+    JUtil.info("Should show\n");
+    JUtil.debug("Should show\n");
 
-    set_log_level(LOG_INFO);
-    gated_raw(LOG_DEBUG, "Should NOT show\n");
-    gated_raw(LOG_INFO, "Should show\n");
-    gated_raw(LOG_WARNING, "Should show\n");
-    gated_raw(LOG_ERROR, "Should show\n");
+    JUtil.set_log_level(LOGLVL_INFO);
+    JUtil.error("Should show\n");
+    JUtil.warn("Should show\n");
+    JUtil.info("Should show\n");
+    JUtil.debug("Should NOT show\n");
 
-    set_log_level(LOG_WARNING);
-    gated_raw(LOG_DEBUG, "Should NOT show\n");
-    gated_raw(LOG_INFO, "Should NOT show\n");
-    gated_raw(LOG_WARNING, "Should show\n");
-    gated_raw(LOG_ERROR, "Should show\n");
+    JUtil.set_log_level(LOGLVL_WARNING);
+    JUtil.error("Should show\n");
+    JUtil.warn("Should show\n");
+    JUtil.info("Should NOT show\n");
+    JUtil.debug("Should NOT show\n");
 
-    info("Logging tests done\n");
+    JUtil.info("Logging tests done\n");
 }
 
-DECL_ARG_CALLBACK(test_death) {
-    die("Exit successful\n");
+JUTIL_ARG_CALLBACK_DECL(test_death) {
+    JUtil.panic("Exit via panic()\n");
 }
 
 int main(int argc, const char ** argv) {
-    parse_args(argc, argv, argb, help_and_exit);
+    JUtil.parse_args(
+        argc,
+        argv,
+        JUTIL_COUNT_ARG_BUNDLES(arg_bundles),
+        arg_bundles,
+        help_and_exit);
     return 0;
 }
