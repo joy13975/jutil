@@ -24,19 +24,19 @@ JUTIL_ARG_CALLBACK_DECL(test_logs) {
     JUtil.info("Message\n");
     JUtil.debug("Debug\n");
 
-    JUtil.set_log_level(LOGLVL_DEBUG);
+    JUtil.set_log_lvl(LOGLVL_DEBUG);
     JUtil.error("Should %s\n", "show");
     JUtil.warn("Should %s\n", "show");
     JUtil.info("Should %s\n", "show");
     JUtil.debug("Should %s\n", "show");
 
-    JUtil.set_log_level(LOGLVL_INFO);
+    JUtil.set_log_lvl(LOGLVL_INFO);
     JUtil.error("Should %s\n", "show");
     JUtil.warn("Should %s\n", "show");
     JUtil.info("Should %s\n", "show");
     JUtil.debug("Should %s\n", "NOT show");
 
-    JUtil.set_log_level(LOGLVL_WARNING);
+    JUtil.set_log_lvl(LOGLVL_WARNING);
     JUtil.error("Should %s\n", "show");
     JUtil.warn("Should %s\n", "show");
     JUtil.info("Should %s\n", "NOT show");

@@ -163,11 +163,15 @@ LOG_FUNC_DEF(debug) {
 
 #undef LOG_FUNC_DEF
 
-JUtilLogLvl get_log_level() {
+JUtilLogLvl get_log_lvl() {
     return _JUTIL_LOGLVL;
 }
 
-void set_log_level(JUtilLogLvl lvl) {
+bool check_log_lvl(JUtilLogLvl const lvl) {
+    return _JUTIL_LOGLVL >= lvl;
+}
+
+void set_log_lvl(JUtilLogLvl const lvl) {
     if (lvl <= LOGLVL_MIN || lvl >= LOGLVL_MAX) {
         error(
             "Invalid log level: %d\nMust be between %d and %d\n",
@@ -384,8 +388,9 @@ JUtilLibraryStruct const JUtil = {
     ASSIGN(info),
     ASSIGN(debug),
 
-    ASSIGN(get_log_level),
-    ASSIGN(set_log_level),
+    ASSIGN(get_log_lvl),
+    ASSIGN(check_log_lvl),
+    ASSIGN(set_log_lvl),
     ASSIGN(get_leading_spaces),
     ASSIGN(set_leading_spaces),
     ASSIGN(reset_leading_spaces),

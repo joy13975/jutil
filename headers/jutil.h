@@ -36,10 +36,11 @@ typedef struct {
 
 #undef LOG_FUNC_PTR_DECL
 
-    JUtilLogLvl (*const get_log_level)();
-    void (*const set_log_level)(JUtilLogLvl);
+    JUtilLogLvl (*const get_log_lvl)();
+    bool (*const check_log_lvl)(JUtilLogLvl const lvl);
+    void (*const set_log_lvl)(JUtilLogLvl const lvl);
     size_t (*const get_leading_spaces)();
-    void (*const set_leading_spaces)(size_t const);
+    void (*const set_leading_spaces)(size_t const n);
     void (*const reset_leading_spaces)();
 
     /* Argument Parsing */
