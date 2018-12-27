@@ -95,10 +95,21 @@ void gated_log(
     FILE * const fd,
     char const* const tag,
     char const* const fmt,
-    ...) {
+    va_list args)
+{
     if (_JUTIL_LOGLVL >= loglvl) {
-        PASS_VA_ARGS(_log, fmt, fd, tag, fmt);
+        _log(fd, tag, fmt, args);
     }
+}
+
+void gated_log_wrapper(
+    JUtilLogLvl const loglvl,
+    FILE * const fd,
+    char const* const tag,
+    char const* const fmt,
+    ...)
+{
+    PASS_VA_ARGS(gated_log, fmt, loglvl, fd, tag, fmt);
 }
 
 LOG_FUNC_DEF(error) {
@@ -355,7 +366,7 @@ JUtilLibraryStruct const JUtil = {
     .NAME = NAME
 
     /* Logging */
-    .log = log_wrapper,
+    .gated_log = gated_log_wrapper,
     ASSIGN(panic),
     ASSIGN(panic_if),
 

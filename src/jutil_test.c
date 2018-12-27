@@ -19,29 +19,29 @@ JUTIL_ARG_CALLBACK_DECL(help_and_exit) {
     exit(1);
 }
 JUTIL_ARG_CALLBACK_DECL(test_logs) {
-    JUtil.log(stdout, "[CUSTOM!]", "Log\n");
+    JUtil.gated_log(LOGLVL_DEBUG, stdout, "[CUSTOM!]", "Log\n");
     JUtil.error("Error\n");
     JUtil.warn("Warning\n");
     JUtil.info("Message\n");
     JUtil.debug("Debug\n");
 
     JUtil.set_log_level(LOGLVL_DEBUG);
-    JUtil.error("Should show\n");
-    JUtil.warn("Should show\n");
-    JUtil.info("Should show\n");
-    JUtil.debug("Should show\n");
+    JUtil.error("Should %s\n", "show");
+    JUtil.warn("Should %s\n", "show");
+    JUtil.info("Should %s\n", "show");
+    JUtil.debug("Should %s\n", "show");
 
     JUtil.set_log_level(LOGLVL_INFO);
-    JUtil.error("Should show\n");
-    JUtil.warn("Should show\n");
-    JUtil.info("Should show\n");
-    JUtil.debug("Should NOT show\n");
+    JUtil.error("Should %s\n", "show");
+    JUtil.warn("Should %s\n", "show");
+    JUtil.info("Should %s\n", "show");
+    JUtil.debug("Should %s\n", "NOT show");
 
     JUtil.set_log_level(LOGLVL_WARNING);
-    JUtil.error("Should show\n");
-    JUtil.warn("Should show\n");
-    JUtil.info("Should NOT show\n");
-    JUtil.debug("Should NOT show\n");
+    JUtil.error("Should %s\n", "show");
+    JUtil.warn("Should %s\n", "show");
+    JUtil.info("Should %s\n", "NOT show");
+    JUtil.debug("Should %s\n", "NOT show");
 
     JUtil.info("Logging tests done\n");
 }
