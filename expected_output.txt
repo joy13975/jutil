@@ -3,7 +3,7 @@
 [33m[WARNING][0m Warning
 [35m[ INFO  ][0m Message
 [34m[ DEBUG ][0m Debug
-[34m[ DEBUG ][0m Log level set to 
+[34m[ DEBUG ][0m Log level set to LOGLVL_DEBUG
 [31m[ ERROR ][0m Should show
 [33m[WARNING][0m Should show
 [35m[ INFO  ][0m Should show
